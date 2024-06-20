@@ -154,10 +154,12 @@ def login():
 
 @app.route('/search_movies', methods=['GET'])
 def search_movies():
+    query = request.args.get('query', '').lower()
     select_query = '''
         SELECT * FROM movies
     '''
     movies = fetch_query(select_query)
+    filtered_movies = [movie for movie in movies if query in movie[1].lower()]
     movie_list = [{
         'movie_id': movie[0],
         'title': movie[1],
@@ -168,9 +170,11 @@ def search_movies():
         'show_time': movie[6],
         'rating': movie[7],
         'description': movie[8],
-        'language': movie[9]
-    } for movie in movies]
+        'language': movie[9],
+        'poster_url': 'path/to/movie/posters/' + movie[1].replace(' ', '_').lower() + '.jpg'  # Example path
+    } for movie in filtered_movies]
     return jsonify(movie_list)
+
 @app.route('/book_movie', methods=['POST'])
 def book_movie():
     data = request.get_json()

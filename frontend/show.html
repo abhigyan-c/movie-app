@@ -11,7 +11,8 @@
     <nav class="fnav">
         <div class="left">
             <img src="bookmyshow.jpg" alt="">
-            <input type="text" placeholder="Search For movie , Events ,">
+            <input id="search-bar" type="text" placeholder="Search For movie , Events ,">
+            <button onclick="searchMovies()">Search</button>
         </div>
         <div class="right">
             <p>Location</p>
@@ -33,12 +34,17 @@
             <p>Gift card</p>
         </div>
     </nav>
+    <div id="search-results" class="container">
+        <h2>Search Results</h2>
+        <div id="search-results-card" class="card"></div>
+    </div>
+
     <div class="main">
         <img src="1664352328095_appkudaweb.jpg">
     </div>
      
     <div class="container">
-        <h2> Recommended Movies</h2>
+        <h2>Recommended Movies</h2>
         <div class="card">
             <img src="et00363650-ycbpksuxsh-portrait.avif" alt="">
             <img src="et00318249-lzmzmtrgcb-portrait.avif" alt="">
@@ -48,13 +54,14 @@
         </div>
     </div>
 
+    
 
     <div class="banner">
         <img src="stream-leadin-web-collection-202210241242.avif" alt="">
     </div>
 
     <div class="container">
-        <h2> The Best of Live Events</h2>
+        <h2>The Best of Live Events</h2>
         <div class="card">
             <img src="1.avif" alt="">
             <img src="2.avif" alt="">
@@ -66,9 +73,8 @@
 
     <div class="Premiere">
         <h2>Premiere</h2>
-
         <div class="container">
-            <h2> Brand new release every Friday</h2>
+            <h2>Brand new release every Friday</h2>
             <div class="card">
                 <img src="1.1.avif" alt="">
                 <img src="1.2.avif" alt="">
@@ -81,7 +87,6 @@
     
     <div class="footer">
         <img src="bookmyshow.jpg" alt="">
-
         <div class="icon">
             <i class="fa-brands fa-facebook"></i>
             <i class="fa-brands fa-instagram"></i>
@@ -90,5 +95,6 @@
         </div>
     </div>
 
+    <script src="mainpage.js"></script>
 </body>
 </html>
