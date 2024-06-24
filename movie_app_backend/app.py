@@ -175,18 +175,54 @@ def search_movies():
     } for movie in filtered_movies]
     return jsonify(movie_list)
 
+@app.route('/get_food_options', methods=['GET'])
+def get_food_options():
+    select_query = 'SELECT food_id, food_item, price FROM food'
+    food_items = fetch_query(select_query)
+    food_list = [{'food_id': item[0], 'name': item[1], 'price': item[2]} for item in food_items]
+    return jsonify(food_list)
+
+
+@app.route('/get_user_label', methods=['GET'])
+def get_user_label():
+    user_id = request.args.get('user_id')
+    select_query = 'SELECT label FROM users WHERE user_id = ?'
+    label = fetch_query(select_query, (user_id,))
+    return jsonify({'label': label[0][0]})
+
+@app.route('/get_prices', methods=['GET'])
+def get_prices():
+    seat_level = request.args.get('seat_level')
+    food_id = request.args.get('food_id')
+    
+    # Assuming you have predefined prices for seat levels and food items
+    seat_prices = {'silver': 10, 'silver+': 15, 'gold': 20}
+    food_price = fetch_query('SELECT price FROM food WHERE food_id = ?', (food_id,))
+    
+    return jsonify({'seat_price': seat_prices.get(seat_level, 10), 'food_price': food_price[0][0]})
+
+@app.route('/get_movie_id', methods=['GET'])
+def get_movie_id():
+    title = request.args.get('title')
+    select_query = 'SELECT movie_id FROM movies WHERE title = ?'
+    movie_id = fetch_query(select_query, (title,))
+    return jsonify({'movie_id': movie_id[0][0]})
+
 @app.route('/book_movie', methods=['POST'])
 def book_movie():
     data = request.get_json()
 
     # Ensure all required fields are present
-    required_fields = ['user_id', 'movie_id', 'show_time', 'seats', 'total_price']
+    required_fields = ['user_id', 'movie_id', 'show_time', 'num_seats', 'label', 'food', 'payment_method']
     for field in required_fields:
         if field not in data:
             return jsonify({"message": f"Missing required field: {field}"}), 400
 
     # Determine seat level based on label if provided
-    seat_level = determine_seat_level(data.get('label')) if 'label' in data else 'default_level'
+    seat_level = 'silver+'
+
+    # Generate seat allocation (this example assumes seats are allocated as A1, A2, etc.)
+    seats = ','.join([f"A{i+1}" for i in range(int(data['num_seats']))])
 
     # Insert into bookings table
     insert_booking_query = '''
@@ -197,10 +233,21 @@ def book_movie():
         data['user_id'],
         data['movie_id'],
         datetime.strptime(data['show_time'], '%Y-%m-%d %H:%M:%S'),
-        data['seats'],
-        data['total_price'],
+        seats,
+        0,  # Assuming a total price of 0 for now
         'confirmed',
         seat_level
+    ))
+
+    # Insert into food_bookings table
+    insert_food_booking_query = '''
+        INSERT INTO food_bookings (booking_id, food_id, total_price)
+        VALUES (?, ?, ?)
+    '''
+    execute_query(insert_food_booking_query, (
+        booking_id,
+        data['food'],
+        0  # Assuming a total price of 0 for now
     ))
 
     # Insert into payments table
@@ -210,20 +257,22 @@ def book_movie():
     '''
     execute_query(insert_payment_query, (
         booking_id,
-        data['total_price'],
-        data.get('payment_method', 'N/A'),
+        0,  # Assuming a total price of 0 for now
+        data['payment_method'],  # Use provided payment method
         'paid'
     ))
 
-    return jsonify({"message": "Movie booked successfully!"}), 201
+    return jsonify({"message": "Movie booked successfully!", "booking_id": booking_id}), 201
 
 def determine_seat_level(label):
-    if label > 4:
-        return 'silver+'
-    elif label > 8:
+    if label > 8:
         return 'gold'
-    return silver
+    elif label > 4:
+        return 'silver+'
+    return 'silver'
 
+if __name__ == '__main__':
+    app.run(debug=True)
 @app.route('/book_food', methods=['POST'])
 def book_food():
     data = request.get_json()
@@ -237,6 +286,7 @@ def book_food():
         data['total_price']
     ))
     return jsonify({"message": "Food booked successfully!"}), 201
+
 
 @app.route('/cancel_booking', methods=['POST'])
 def cancel_booking():

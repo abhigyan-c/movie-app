@@ -1,0 +1,83 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Book Movie</title>
+    <link rel="stylesheet" href="booking.css">
+</head>
+<body>
+    <div class="container">
+        <h1>Book Your Movie</h1>
+        <div class="form-group">
+            <label>Seat Level:</label>
+            <span id="seatLevel">Silver+</span>
+        </div>
+        <div class="form-group">
+            <label for="showTime">Select Showtime:</label>
+            <select id="showTime">
+                <option value="2024-06-21 10:00:00">10 AM</option>
+                <option value="2024-06-21 17:00:00">5 PM</option>
+                <option value="2024-06-21 19:00:00">7 PM</option>
+            </select>
+        </div>
+        <div class="form-group">
+            <label for="food">Select Food:</label>
+            <select id="food">
+                <option value="1">Popcorn</option>
+                <option value="2">Nachos</option>
+                <option value="3">Chips</option>
+            </select>
+        </div>
+        <div class="form-group">
+            <label for="numSeats">Number of Seats:</label>
+            <input type="number" id="numSeats" min="1" value="1">
+        </div>
+        <div class="form-group">
+            <p>Select Payment Method:</p>
+            <input type="radio" id="creditCard" name="paymentMethod" value="Credit Card" checked>
+            <label for="creditCard">Credit Card</label>
+            <input type="radio" id="upi" name="paymentMethod" value="UPI">
+            <label for="upi">UPI</label>
+        </div>
+        <button id="bookNowBtn">Book Now</button>
+    </div>
+    <script>
+        document.getElementById('bookNowBtn').addEventListener('click', function() {
+            const userId = 1; // Example user_id
+            const movieId = 1; // Example movie_id
+            const numSeats = document.getElementById('numSeats').value; // Number of seats
+            const seats = 'A1,A2'; // Example seats (to be dynamically generated based on numSeats)
+            const showTime = document.getElementById('showTime').value; // Selected show time
+            const seatLevel = 'silver+'; // Constant seat level
+            const food = document.getElementById('food').value; // Selected food
+            const paymentMethod = document.querySelector('input[name="paymentMethod"]:checked').value; // Selected payment method
+
+            fetch('http://localhost:5000/book_movie', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({
+                    user_id: userId,
+                    movie_id: movieId,
+                    seats: seats,
+                    num_seats: numSeats,
+                    show_time: showTime,
+                    label: seatLevel,
+                    food: food, // Include selected food
+                    payment_method: paymentMethod // Include selected payment method
+                })
+            })
+            .then(response => response.json())
+            .then(data => {
+                alert('Booking Successful! Booking ID: ' + data.booking_id);
+            })
+            .catch(error => {
+                console.error('Error:', error);
+                alert('Booking failed. Please try again.');
+            });
+        });
+    </script>
+</body>
+</html>

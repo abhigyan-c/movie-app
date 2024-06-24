@@ -20,14 +20,22 @@ async function searchMovies() {
             movieCard.className = 'movie-card';
             movieCard.innerHTML = `
                 <img src="${movie.poster_url}" alt="${movie.title}">
-                <h3>${movie.title}</h3>
-                <p>Genre: ${movie.genre}</p>
-                <p>Director: ${movie.director}</p>
-                <p>Release Date: ${movie.release_date}</p>
+                <div class="movie-details">
+                        <h2>${movie.title}</h2>
+                        <p>Director: ${movie.director}</p>
+                        <p>Genre: ${movie.genre}</p>
+                        <p>Language: ${movie.language}</p>
+                        <button onclick="redirectToBooking('${movie.title}')">Book Now</button>
+                    </div>
             `;
             searchResultsCard.appendChild(movieCard);
         });
     }
 
     document.getElementById('search-results').style.display = 'block';
+}
+
+function redirectToBooking(movieTitle) {
+    localStorage.setItem('selectedMovie', movieTitle);
+    window.location.href = 'booking.html';
 }
