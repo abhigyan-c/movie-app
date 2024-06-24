@@ -211,11 +211,19 @@ def get_movie_id():
 @app.route('/book_movie', methods=['POST'])
 def book_movie():
     data = request.get_json()
-    required_fields = ['user_id', 'movie_id', 'show_time', 'seats', 'total_price', 'payment_method', 'label']
+
+    # Ensure all required fields are present
+    required_fields = ['user_id', 'movie_id', 'show_time', 'num_seats', 'label', 'food', 'payment_method']
     for field in required_fields:
         if field not in data:
             return jsonify({"message": f"Missing required field: {field}"}), 400
-    
+
+    # Determine seat level based on label if provided
+    seat_level = 'silver+'
+
+    # Generate seat allocation (this example assumes seats are allocated as A1, A2, etc.)
+    seats = ','.join([f"A{i+1}" for i in range(int(data['num_seats']))])
+
     # Insert into bookings table
     insert_booking_query = '''
         INSERT INTO bookings (user_id, movie_id, show_time, seats, total_price, booking_status, seat_level)
@@ -225,10 +233,21 @@ def book_movie():
         data['user_id'],
         data['movie_id'],
         datetime.strptime(data['show_time'], '%Y-%m-%d %H:%M:%S'),
-        data['seats'],
-        data['total_price'],
+        seats,
+        0,  # Assuming a total price of 0 for now
         'confirmed',
-        data['label']
+        seat_level
+    ))
+
+    # Insert into food_bookings table
+    insert_food_booking_query = '''
+        INSERT INTO food_bookings (booking_id, food_id, total_price)
+        VALUES (?, ?, ?)
+    '''
+    execute_query(insert_food_booking_query, (
+        booking_id,
+        data['food'],
+        0  # Assuming a total price of 0 for now
     ))
 
     # Insert into payments table
@@ -238,13 +257,22 @@ def book_movie():
     '''
     execute_query(insert_payment_query, (
         booking_id,
-        data['total_price'],
-        data['payment_method'],
+        0,  # Assuming a total price of 0 for now
+        data['payment_method'],  # Use provided payment method
         'paid'
     ))
 
     return jsonify({"message": "Movie booked successfully!", "booking_id": booking_id}), 201
 
+def determine_seat_level(label):
+    if label > 8:
+        return 'gold'
+    elif label > 4:
+        return 'silver+'
+    return 'silver'
+
+if __name__ == '__main__':
+    app.run(debug=True)
 @app.route('/book_food', methods=['POST'])
 def book_food():
     data = request.get_json()
